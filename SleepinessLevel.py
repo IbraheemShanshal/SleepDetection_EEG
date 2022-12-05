@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt          #used for visualisations in python
 import numpy as np                       #NumPy is used to do a wide range of mathmatical equations
 
 import mne                                                 #to analyse EEG signals
+import pandas as pd
 from mne.datasets.sleep_physionet.age import fetch_data    #importing the dataset
 from mne.decoding import (Vectorizer)
 
@@ -14,6 +15,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import make_pipeline
+import featurewiz                                          #automated tool to help choose the best features in the dataset to focus on
+from featurewiz import featurewiz
 
 event_id = {'Sleep stage W': 1,
             'Sleep stage 1': 2,
@@ -34,7 +37,6 @@ def some_operation(dpath):
     scalings = dict(eeg=40e-5)
     raw.plot(duration=60, scalings=scalings,remove_dc=False,)
     tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
-
     # Extract the annotation from the raw file
     annot = mne.read_annotations(dpath[1])
     annot.crop(annot[1]['onset'] - 30 * 60,annot[-2]['onset'] + 30 * 60)
@@ -47,13 +49,20 @@ def some_operation(dpath):
     epochs = mne.Epochs(raw=raw, events=events, event_id=event_id,tmin=0., tmax=tmax, baseline=None)
 
     return epochs
-ALICE, BOB = 0, 1
 
+df = pd.read_csv("your_csv_file.csv")
+df.head()
+target = 'Event marker'
+features = featurewiz(df, target, corr_limit=0.70, verbose=2)
+
+
+
+ALICE, BOB = 0, 1
 # Download data from sleep Physionet dataset
 all_data = fetch_data(subjects=[ALICE, BOB], recording=[1])
-
 # Read the PSG data and Hypnograms to create a raw object
 all_ep=[some_operation(dpath) for dpath in all_data]
 
 epochs_alice,epochs_bob=all_ep
-
+print(epochs_alice.info)
+print(epochs_bob.info)
