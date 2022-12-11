@@ -7,9 +7,6 @@ import mne                                                 #to analyse EEG signa
 import pandas as pd
 from mne.datasets.sleep_physionet.age import fetch_data    #importing the dataset
 from mne.decoding import (Vectorizer)
-
-
-
 from sklearn.ensemble import RandomForestClassifier        #sklearn is used for machine learning
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
@@ -17,52 +14,57 @@ from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import make_pipeline
 import featurewiz                                          #automated tool to help choose the best features in the dataset to focus on
 from featurewiz import featurewiz
+import os
 
-event_id = {'Sleep stage W': 1,
-            'Sleep stage 1': 2,
-            'Sleep stage 2': 3,
-            'Sleep stage 3': 4,
-            'Sleep stage 4': 4,
-            'Sleep stage R': 5}
+# download the dataset with EEG files from physionet
+from mne.datasets import sleep_physionet
+sleep_physionet.age.fetch_data(subjects=[0])
 
-def some_operation(dpath):
+#reading database
+sample_data_folder = mne.datasets.sample.data_path()
+sample_data_raw_file = os.path.join(sample_data_folder, 'MEG', 'sample',
+                                    'sample_audvis_filt-0-40_raw.fif')
 
-    # Read the PSG data
-    raw = mne.io.read_raw_edf(dpath[0], stim_channel='marker',misc=['rectal'])
+# loading data into memory
+raw = mne.io.read_raw_fif(sample_data_raw_file,preload=True) #preload is true because the file is preloaded, if its not working change it to false
 
-    # Select only EEG
-    raw.drop_channels(['EOG horizontal','Resp oro-nasal','EMG submental','Temp rectal',
-                       'Event marker'])
+#Getting basic info about the dataset
+print('raw info:')
+print(raw.info)
 
-    scalings = dict(eeg=40e-5)
-    raw.plot(duration=60, scalings=scalings,remove_dc=False,)
-    tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
-    # Extract the annotation from the raw file
-    annot = mne.read_annotations(dpath[1])
-    annot.crop(annot[1]['onset'] - 30 * 60,annot[-2]['onset'] + 30 * 60)
+original_raw = raw.copy()
+rereferenced_raw, ref_data = mne.set_eeg_reference(raw, ['EEG 003'],copy=True)
 
-    raw.set_annotations(annot, emit_warning=False)
-    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=30.)
-    # u, indices = np.unique(annot['description'], return_index=True)
+#modifying data in-place
+raw.crop(tmax=60.)
+print('raw:')
+print(raw)
 
-    # Create epochs of 30 sec from the continous signal
-    epochs = mne.Epochs(raw=raw, events=events, event_id=event_id,tmin=0., tmax=tmax, baseline=None)
+print('bad channels:', raw.info['bads'])
+print(raw.info['sfreq'], 'Hz')
+print(raw.info['description'], '\n')
 
-    return epochs
+# we make copy is equal to true, so we preserve a copy of the original file for comparison or to do operations on it
+rereferenced_raw, ref_data = mne.set_eeg_reference(raw, ['EEG 003'],copy=True)
+original_raw = raw.copy()
+eeg = raw.copy().pick_types(meg=False, eeg=True, eog=False) #we only want to select EEG so we dropped other chanlles
+print(len(raw.ch_names), '→', len(eeg.ch_names))
 
-df = pd.read_csv("your_csv_file.csv")
-df.head()
-target = 'Event marker'
-features = featurewiz(df, target, corr_limit=0.70, verbose=2)
+raw_temp = raw.copy()
+print('Number of channels in raw_temp:')
+print(len(raw_temp.ch_names), end=' → drop two → ')
+raw_temp.drop_channels(['EEG 037', 'EEG 059'])
+print(len(raw_temp.ch_names), end=' → pick three → ')
 
+#selection of frontal eeg censors
+raw_temp.pick_channels(['EEG 017'])
+channel_names = [ 'EEG 003', 'EEG 002', 'EEG 001']
+frontal_eeg = raw.copy().reorder_channels(channel_names)
 
-
-ALICE, BOB = 0, 1
-# Download data from sleep Physionet dataset
-all_data = fetch_data(subjects=[ALICE, BOB], recording=[1])
-# Read the PSG data and Hypnograms to create a raw object
-all_ep=[some_operation(dpath) for dpath in all_data]
-
-epochs_alice,epochs_bob=all_ep
-print(epochs_alice.info)
-print(epochs_bob.info)
+# selection of data in a time domain, because the time is too long for a full file to be processed
+# we need to copy the data first
+raw_selection = raw.copy().crop(tmin=10, tmax=12.5)
+print(raw_selection)
+print(raw_selection.times.min(), raw_selection.times.max())
+raw_selection.crop(tmin=1)
+print(raw_selection.times.min(), raw_selection.times.max())
