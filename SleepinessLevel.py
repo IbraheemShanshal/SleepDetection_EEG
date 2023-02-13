@@ -30,7 +30,8 @@ def some_operation(dpath):
     # Select only EEG
     raw.drop_channels(['EOG horizontal','Resp oro-nasal','EMG submental','Temp rectal',
                        'Event marker'])
-
+    
+    #Filter the high-pass frequency to be 49
     raw.filter(l_freq=2,h_freq=49))
 
     scalings = dict(eeg=40e-5)
