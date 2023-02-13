@@ -31,7 +31,7 @@ def some_operation(dpath):
     raw.drop_channels(['EOG horizontal','Resp oro-nasal','EMG submental','Temp rectal',
                        'Event marker'])
 
-    raw.filter(49., None, method='iir')
+    raw.filter(l_freq=2,h_freq=49))
 
     scalings = dict(eeg=40e-5)
     raw.plot(duration=60, scalings=scalings,remove_dc=False,)
