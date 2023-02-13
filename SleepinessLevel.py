@@ -1,70 +1,89 @@
-# this file will be used to write our own code
+import matplotlib.pyplot as plt
+import numpy as np
 
-import matplotlib.pyplot as plt          #used for visualisations in python
-import numpy as np                       #NumPy is used to do a wide range of mathmatical equations
-
-import mne                                                 #to analyse EEG signals
-import pandas as pd
-from mne.datasets.sleep_physionet.age import fetch_data    #importing the dataset
+import mne
+from mne.datasets.sleep_physionet.age import fetch_data
 from mne.decoding import (Vectorizer)
-from sklearn.ensemble import RandomForestClassifier        #sklearn is used for machine learning
+
+
+#from mne_features.feature_extraction import FeatureExtractor  # Take some time because of Numba
+#from mne_features.feature_extraction import extract_features
+
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import make_pipeline
-import featurewiz                                          #automated tool to help choose the best features in the dataset to focus on
-from featurewiz import featurewiz
-import os
 
-# download the dataset with EEG files from physionet
-from mne.datasets import sleep_physionet
-sleep_physionet.age.fetch_data(subjects=[0])
+event_id = {'Sleep stage W': 1,
+            'Sleep stage 1': 2,
+            'Sleep stage 2': 3,
+            'Sleep stage 3': 4,
+            'Sleep stage 4': 4,
+            'Sleep stage R': 5}
+def some_operation(dpath):
 
-#reading database
-sample_data_folder = mne.datasets.sample.data_path()
-sample_data_raw_file = os.path.join(sample_data_folder, 'MEG', 'sample',
-                                    'sample_audvis_filt-0-40_raw.fif')
+    # Read the PSG data
+    raw = mne.io.read_raw_edf(dpath[0], stim_channel='marker',misc=['rectal'])
+    raw.load_data()
 
-# loading data into memory
-raw = mne.io.read_raw_fif(sample_data_raw_file,preload=True) #preload is true because the file is preloaded, if its not working change it to false
+    # Select only EEG
+    raw.drop_channels(['EOG horizontal','Resp oro-nasal','EMG submental','Temp rectal',
+                       'Event marker'])
 
-#Getting basic info about the dataset
-print('raw info:')
-print(raw.info)
+    raw.filter(49., None, method='iir')
 
-original_raw = raw.copy()
-rereferenced_raw, ref_data = mne.set_eeg_reference(raw, ['EEG 003'],copy=True)
+    scalings = dict(eeg=40e-5)
+    raw.plot(duration=60, scalings=scalings,remove_dc=False,)
+    tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
 
-#modifying data in-place
-raw.crop(tmax=60.)
-print('raw:')
-print(raw)
+    # Extract the annotation from the raw file
+    annot = mne.read_annotations(dpath[1])
+    annot.crop(annot[1]['onset'] - 30 * 60,annot[-2]['onset'] + 30 * 60)
 
-print('bad channels:', raw.info['bads'])
-print(raw.info['sfreq'], 'Hz')
-print(raw.info['description'], '\n')
+    raw.set_annotations(annot, emit_warning=False)
+   
+    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=30.)
+    # u, indices = np.unique(annot['description'], return_index=True)
 
-# we make copy is equal to true, so we preserve a copy of the original file for comparison or to do operations on it
-rereferenced_raw, ref_data = mne.set_eeg_reference(raw, ['EEG 003'],copy=True)
-original_raw = raw.copy()
-eeg = raw.copy().pick_types(meg=False, eeg=True, eog=False) #we only want to select EEG so we dropped other chanlles
-print(len(raw.ch_names), '→', len(eeg.ch_names))
+    # Create epochs of 30 sec from the continous signal
+    epochs = mne.Epochs(raw=raw, events=events, event_id=event_id,tmin=0., tmax=tmax, baseline=None)
 
-raw_temp = raw.copy()
-print('Number of channels in raw_temp:')
-print(len(raw_temp.ch_names), end=' → drop two → ')
-raw_temp.drop_channels(['EEG 037', 'EEG 059'])
-print(len(raw_temp.ch_names), end=' → pick three → ')
+    return epochs
 
-#selection of frontal eeg censors
-raw_temp.pick_channels(['EEG 017'])
-channel_names = [ 'EEG 003', 'EEG 002', 'EEG 001']
-frontal_eeg = raw.copy().reorder_channels(channel_names)
+Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10 = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+# Download data from sleep Physionet dataset
+all_data = fetch_data(subjects=[Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10 ], recording=[1])
+# Read the PSG data and Hypnograms to create a raw object
+all_ep=[some_operation(dpath) for dpath in all_data]
 
-# selection of data in a time domain, because the time is too long for a full file to be processed
-# we need to copy the data first
-raw_selection = raw.copy().crop(tmin=10, tmax=12.5)
-print(raw_selection)
-print(raw_selection.times.min(), raw_selection.times.max())
-raw_selection.crop(tmin=1)
-print(raw_selection.times.min(), raw_selection.times.max())
+epochs_data1,epochs_data2,epochs_data3,epochs_data4,epochs_data5,epochs_data6,epochs_data7,epochs_data8,epochs_data9,epochs_data10=all_ep
+print(epochs_data1.info)
+print(epochs_data2.info)
+print(epochs_data3.info)
+print(epochs_data4.info)
+print(epochs_data5.info)
+print(epochs_data6.info)
+print(epochs_data7.info)
+print(epochs_data8.info)
+print(epochs_data9.info)
+print(epochs_data10.info)
+
+stage_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+fig, (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10) = plt.subplots(ncols=10,figsize=(50,6))
+
+stages = sorted(event_id.keys())
+for ax, title, epochs in zip([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10],
+                             ['Data1', 'Data2', 'Data3', 'Data4', 'Data5', 'Data6', 'Data7', 'Data8', 'Data9', 'Data10'],
+                             [epochs_data1,epochs_data2,epochs_data3,epochs_data4,epochs_data5,epochs_data6,epochs_data7,epochs_data8,epochs_data9,epochs_data10]):
+
+    for stage, color in zip(stages, stage_colors):
+        epochs[stage].plot_psd(area_mode=None, color=color, ax=ax,fmin=0.1, fmax=40., show=False,
+                       average=True, spatial_colors=False)
+
+    ax.set(title=title, xlabel='Frequency (Hz)')
+ax2.set(ylabel='µV^2/Hz (dB)')
+ax2.legend(ax2.lines[2::3], stages)
+plt.tight_layout()
+plt.show()
