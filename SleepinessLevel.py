@@ -1,18 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 import mne
 from mne.datasets.sleep_physionet.age import fetch_data
-from mne.decoding import (Vectorizer)
+from mne.decoding import Vectorizer
 
-from mne_features.feature_extraction import FeatureExtractor
-# from mne_features.feature_extraction import extract_features
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from sklearn.pipeline import make_pipeline
+import mne_features
+from mne_features.feature_extraction import extract_features
+from mne.time_frequency import psd_multitaper
 
 event_id = {'Sleep stage W': 1,
             'Sleep stage 1': 2,
@@ -92,32 +88,32 @@ ax2.legend(ax2.lines[2::3], stages)
 plt.tight_layout()
 plt.show()
 
+def eeg_power_band(epochs):
+    # specific frequency bands
+    FREQ_BANDS = {"delta": [0.5, 4.5],
+                  "theta": [4.5, 8.5],
+                  "alpha": [8.5, 11.5],
+                  "sigma": [11.5, 15.5],
+                  "beta": [15.5, 30],
+                  } # no gamma because it has freq higher than Ntquist frequency
 
+    selected_features = ['pow_freq_bands']
 
-# Define a function to extract features from a given epoch
-def extract_features(epoch):
-    fe = FeatureExtractor(sfreq=epoch.info['sfreq'])
-    features = fe.fit_transform(epoch)
-    return features
+    freq_bands=np.unique(np.concatenate(list(map(list, (FREQ_BANDS.values())))))
 
-# Define the list of features to extract
-feature_names = ['line_length', 'stft', 'psd', 'hf_ratio', 'spect_entropy']
+    funcs_params = dict ( pow_freq_bands__normalize=False,
+                          pow_freq_bands__ratios='all',
+                          pow_freq_bands__psd_method='fft',
+                          pow_freq_bands__freq_bands=freq_bands)
 
-# Define the epochs to extract features from
-epochs_list = [epochs_data1, epochs_data2, epochs_data3, epochs_data4, epochs_data5, epochs_data6, epochs_data7, epochs_data8, epochs_data9, epochs_data10]
+    sfreq=epochs.info['sfreq']
+    features_all = extract_features(epochs.get_data(),
+                                    sfreq,
+                                    selected_funcs=selected_features,
+                                    return_as_df=True,
+                                    funcs_params=funcs_params)
 
-# Create an empty array to store the features
-X = np.empty((0, len(feature_names)))
-
-# Extract the features from each epoch and concatenate them into a single array
-for epochs in epochs_list:
-    # Extract the features for each epoch
-    epoch_features = []
-    for epoch in epochs:
-        features = extract_features(epoch)
-        epoch_features.append(features)
-
-    # Concatenate the features into a single array
-    epoch_features = np.concatenate(epoch_features, axis=0)
-    X = np.concatenate((X, epoch_features), axis=0)
-
+    return features_all
+df = eeg_power_band(epochs)
+print(df.head())
+df.to_csv('eeg_power.csv', index=False)
