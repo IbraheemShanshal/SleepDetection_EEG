@@ -79,9 +79,8 @@ for ax, title, epochs in zip([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10]
                               epochs_data7, epochs_data8, epochs_data9, epochs_data10]):
 
     for stage, color in zip(stages, stage_colors):
-        ps = epochs[stage].compute_psd(fmin=0.1, fmax=40.)
-        ps.plot(ci=None, color=color, axes=ax,
-                show=False, average=True, spatial_colors=False)
+        epochs[stage].plot_psd(area_mode=None, color=color, ax=ax, fmin=0.1, fmax=40., show=False,
+                               average=True, spatial_colors=False)
 
     ax.set(title=title, xlabel='Frequency (Hz)')
 ax1.set(ylabel='µV^2/Hz (dB)')
@@ -115,6 +114,8 @@ def eeg_power_band(epochs):
                                     funcs_params=funcs_params)
 
     return features_all
+
+
 df = eeg_power_band(epochs)
 print(df.head())
 df.to_csv('eeg_power.csv', index=False)
