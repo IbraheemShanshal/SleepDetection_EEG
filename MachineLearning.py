@@ -15,23 +15,8 @@ import SleepinessLevel as sl
 df = pd.read_pickle('data.pkl')
 
 
-
-sfreq=100
-
-funcs_params = dict ( pow_freq_bands__normalize=False,
-                      pow_freq_bands__ratios='all',
-                      pow_freq_bands__psd_method='fft',
-                      pow_freq_bands__freq_bands=df)
-
-selected_funcs = ['line_length',
-                  'kurtosis',
-                  'ptp_amp',
-                  'skewness',
-                  'pow_freq_bands']
-
 # FeatureExtractor >> function under mne-feature
-pipe = make_pipeline( FeatureExtractor(sfreq=sfreq,params=funcs_params,
-                                       selected_funcs=selected_funcs),
+pipe = make_pipeline( df,
                       Vectorizer(),
                       RandomForestClassifier(n_estimators=100, random_state=42))
 
@@ -39,9 +24,8 @@ pipe = make_pipeline( FeatureExtractor(sfreq=sfreq,params=funcs_params,
 X = sl.epochs.get_data()
 y = sl.epochs.events[:, 2]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-# epochs_train,epochs_test=epochs_alice,epochs_bob
 pipe.fit(X_train,y_train)
 
 # Test
