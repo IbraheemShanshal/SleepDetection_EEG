@@ -117,4 +117,4 @@ def eeg_power_band(epochs):
     return features_all
 df = eeg_power_band(epochs)
 print(df.head())
-df.to_csv('eeg_power.csv', index=False)
+df.to_pickle('eeg_power.pkl')
