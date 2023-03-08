@@ -186,7 +186,6 @@ def eeg_power_band(epochs):
 # selected_features = ['pow_freq_bands']
 
 df1 = eeg_power_band(epochs_data1)
-print(df1.head())
 df2 = eeg_power_band(epochs_data2)
 df3 = eeg_power_band(epochs_data3)
 df4 = eeg_power_band(epochs_data4)
@@ -196,13 +195,10 @@ df7 = eeg_power_band(epochs_data7)
 df8 = eeg_power_band(epochs_data8)
 df9 = eeg_power_band(epochs_data9)
 df10 = eeg_power_band(epochs_data10)
-df1.to_pickle('eeg_power1.pkl')
-df2.to_pickle('eeg_power2.pkl')
-df3.to_pickle('eeg_power3.pkl')
-df4.to_pickle('eeg_power4.pkl')
-df5.to_pickle('eeg_power5.pkl')
-df6.to_pickle('eeg_power6.pkl')
-df7.to_pickle('eeg_power7.pkl')
-df8.to_pickle('eeg_power8.pkl')
-df9.to_pickle('eeg_power9.pkl')
-df10.to_pickle('eeg_power10.pkl')
+df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10])
+
+# print the concatenated dataframe
+print(df)
+df.to_csv('test.csv',index=False)
+df.to_pickle('data.pkl')
+
