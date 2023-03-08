@@ -47,8 +47,11 @@ app.layout = html.Div([
     ])
 ])
 
-
+#below is before i add the preprocessing part
 '''
+@app.callback(Output('output-data-upload', 'children'),
+              Input('upload-edf', 'contents'),
+              State('upload-edf', 'filename'))
 def update_output(content, filename):
     
     if content is not None:
@@ -68,6 +71,8 @@ def update_output(content, filename):
 
 @app.callback(Output('eeg-graph', 'figure'),
               Input('output-data-upload', 'children'))'''
+
+#below is after putting preprocesing
 
 @app.callback(Output('output-data-upload', 'children'),
               Input('upload-edf', 'contents'),
