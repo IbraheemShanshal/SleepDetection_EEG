@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
+import warnings
 
 import mne
 from mne.datasets.sleep_physionet.age import fetch_data
@@ -53,7 +54,10 @@ def process_data(dpath):
     # Create epochs of 30 sec from the continuous signal
     epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, tmin=0., tmax=tmax, baseline=None)
 
+
     return epochs
+
+
 
 # assigning numbers here for easy readability
 Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10 = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -71,6 +75,7 @@ for i in range(len(all_data)):
     file_name = os.path.basename(all_data[i][0])
     subject_name = file_name[:8]
     print(subject_name)
+
 
 
 #Do something with the subject's data or name
@@ -129,9 +134,9 @@ def get_sleep_stages(epochs):
         elif stage == 4:
             sleep_stages.append('4')
         elif stage == 5:
-            sleep_stages.append('4')
-        elif stage == 6:
             sleep_stages.append('5')
+        #elif stage == 6:
+        #    sleep_stages.append('5')
         else:
             sleep_stages.append('UNKNOWN')
 
@@ -146,6 +151,8 @@ def eeg_power_band(epochs):
                   "sigma": [11.5, 15.5],
                   "beta": [15.5, 30],
                   }  # no gamma because it has freq higher than Ntquist frequency
+
+    warnings.simplefilter(action='ignore', category=FutureWarning)
 
     selected_features = ['pow_freq_bands']
 
@@ -175,7 +182,7 @@ def eeg_power_band(epochs):
     data['subject_id'] = subject_name
 
     # display the data in a table-like view
-    print(data.to_string(index=False))
+    #print(data.to_string(index=False))
 
     return data
 
@@ -186,6 +193,7 @@ def eeg_power_band(epochs):
 # selected_features = ['pow_freq_bands']
 
 df1 = eeg_power_band(epochs_data1)
+print(df1.head())
 df2 = eeg_power_band(epochs_data2)
 df3 = eeg_power_band(epochs_data3)
 df4 = eeg_power_band(epochs_data4)
@@ -198,7 +206,6 @@ df10 = eeg_power_band(epochs_data10)
 df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10])
 
 # print the concatenated dataframe
-print(df)
+#print(df)
 df.to_csv('test.csv',index=False)
 df.to_pickle('data.pkl')
-
