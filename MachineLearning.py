@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 
 df = pd.read_pickle('data.pkl')
-
+#df['sbj_id']=random(1,10)
 #X = data of selected features of each epochs (select first to third last column of datas of df)
 X = df.iloc[:, :-2]
 #y = sleep stage of each epochs (select second last column of df)
@@ -45,6 +45,14 @@ print(classification_report(y_test, y_pred,target_names={'Sleep stage W': 1,
                                                          'Sleep stage 2': 3,
                                                          'Sleep stage 3/4': 4,
                                                          'Sleep stage R': 5}))
+
+#recall -> proportion of actual positive instances that are correctly identified as positive by the model
+#F1 score -> balanced measure of precision and recall
+#support -> shows the number of samples in the test set that belong to each class
+#accuracy -> overall accuracy of the model on the test set
+#macro avg -> calculates the average metric score across all classes, regardless of the number of samples in each class
+#weighted avg -> average metric score across all classes, weighted by the number of samples in each class
+
 
 #print(X_test)
 #print(y_pred)
