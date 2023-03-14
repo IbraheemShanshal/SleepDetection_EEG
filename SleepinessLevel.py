@@ -18,7 +18,7 @@ event_id = {'Sleep stage W': 1,
             'Sleep stage R': 5}
 
 # this function will process
-def process_data(dpath):
+def process_data(dpath):            # new way to write with added parameter is " def process_data(dpath, subject_id) "
 
     # Read the PSG data, raw contains the following:
     # 2d numpy array for data
@@ -53,8 +53,9 @@ def process_data(dpath):
     # u, indices = np.unique(annot['description'], return_index=True)
     # Create epochs of 30 sec from the continuous signal
     epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, tmin=0., tmax=tmax, baseline=None)
-
-
+     
+    # we can also put this code here but need to add a new parameter for subject_id above
+    # epochs_data.info['subject_info'] = {'id': str(subject_id)} 
 
 
     return epochs
@@ -78,14 +79,14 @@ def process_data(dpath):
 # Read the PSG data and Hypnograms to create a raw object
 
 """new code"""
-subject_ids = range(0, 10)
+subject_ids = range(0, 10) #We can just put range(10) where the ids will start from 0-9
 
 #Download all the datasets
 all_data = fetch_data(subjects=subject_ids, recording=[1])
 
 all_ep = [process_data(dpath) for dpath in all_data]
 
-#Loop the epochs data so that it does not look so cluttered
+#Loop the epochs data gathering for each data downloaded so that it does not look so cluttered
 epochs_datas = [all_ep[i] for i in range(len(all_ep))]
 
 
@@ -95,9 +96,27 @@ for i in range(len(all_ep)):
     epochs_data = all_ep[i]
     file_name = os.path.basename(all_data[i][0])
     subject_id = file_name[:8]
-    epochs_data.info['subject_info'] = {'id': str(subject_id)}
-##
+    epochs_data.info['subject_info'] = {'id': str(subject_id)} 
 
+            
+##
+"""
+#Can also write something like this 
+subject_ids = range(10)
+
+all_data = fetch_data(subjects=subject_ids, recording=[1])
+all_ep = [process_data(dpath, subject_id) for dpath, subject_id in zip(all_data, subject_ids)]
+
+#Loop the epochs data so that it does not look so cluttering
+epochs_data = [all_ep[i] for i in range(len(all_ep))]
+
+#this is all a trial:
+for i in range(len(all_data)):
+    file_name = os.path.basename(all_data[i][0])
+    file_name = str(subject_ids[i]) #This will make the file name into integers     
+    subject_name = file_name[:8]
+    print(subject_name)
+"""
 
 #this is all a trial:
 #for i in range(len(all_data)):
@@ -207,19 +226,17 @@ def eeg_power_band(epochs):
 
 # features_all, subject_name = eeg_power_band(epochs_data1)
 # selected_features = ['pow_freq_bands']
-#we can have another loop for this i guess but im going to sleep :)
-df1 = eeg_power_band(epochs_datas[0])
-print(df1.head())
-df2 = eeg_power_band(epochs_datas[1])
-df3 = eeg_power_band(epochs_datas[2])
-df4 = eeg_power_band(epochs_datas[3])
-df5 = eeg_power_band(epochs_datas[4])
-df6 = eeg_power_band(epochs_datas[5])
-df7 = eeg_power_band(epochs_datas[6])
-df8 = eeg_power_band(epochs_datas[7])
-df9 = eeg_power_band(epochs_datas[8])
-df10 = eeg_power_band(epochs_datas[9])
-df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10])
+
+#Looping sequence for dataframe
+dfs = [] #Creates an empty list to store the dfs
+for epochs_data in all_ep:
+    df = eeg_power_band(epochs_data)
+    dfs.append(df)
+    print(df.head()) #Print first five data from the dataframe for all df to see whether everything is working accordingly
+
+#Concatenate all the dataframes
+df = pd.concat(dfs, ignore_index=True)
+
 
 # print the concatenated dataframe
 #print(df)
