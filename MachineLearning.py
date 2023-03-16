@@ -2,7 +2,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GroupKFold
 
 import pandas as pd
@@ -76,17 +75,17 @@ print(classification_report(y_test, y_pred,target_names={'Sleep stage W': 1,
 
 # later on map to output to GUI using this
 output = {
-    '1': 'awake',#change to output string that we want to show on GUI
-    '2': 'Sleep stage 1',
-    '3': 'Sleep stage 2',
-    '4': 'Sleep stage 3/4',
-    '5': 'Sleep stage R'
+    '1': 'Awake',#change to output string that we want to show on GUI
+    '2': 'Half asleep',
+    '3': 'Fully asleep',
+    '4': 'Fully asleep',
+    '5': 'Fully asleep'
 }
 
 
 outputs = [output[value] for value in y_pred]
 
-output_df = pd.DataFrame({'outout': outputs})
+output_df = pd.DataFrame({'output': outputs})
 
 output_df.to_csv('output.csv',index=False)
 output_df.to_pickle('output.pkl')
