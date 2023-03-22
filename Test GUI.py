@@ -109,10 +109,6 @@ def feature_extract(epochs):
                                     return_as_df=True,
                                     funcs_params=funcs_params)
 
-    # Get the subject ID
-    file_name = epochs.info['subject_info']['id']
-    subject_name = file_name[:8]
-
 
     # Get the sleep stage information, assuming it's available
     sleep_stages = get_sleep_stages(epochs)  # replace this with your own function that gets the sleep stages
@@ -120,11 +116,9 @@ def feature_extract(epochs):
     # create a new dataframe with the data, sleep stage, and subject_id columns
     data = pd.DataFrame(features_all)
     data['sleep_stage'] = sleep_stages
-    data['subject_id'] = subject_name
+    
 
 
-    # display the data in a table-like view
-    #print(data.to_string(index=False))
 
     return data
 
