@@ -14,6 +14,7 @@ import pickle
 import numpy as np
 from mne_features.feature_extraction import extract_features
 
+#The first 3 functions are the one we used in our machine learning
 
 def preprocessed_data(data):
 
@@ -127,13 +128,14 @@ def feature_extract(epochs):
 
     return data
 
+# Here is where we will start our dash app
 app = Dash(__name__)    # create Dash app
 app.title = 'Sleepiness Detection'  # set title
 server = app.server    # set server
 
 app.layout = html.Div([ # define layout
-    dcc.Tabs([  # define tabs
-        dcc.Tab(label='Upload EDF', children=[ # define tab for uploading edf
+    dcc.Tabs([  # Add Tabs function
+        dcc.Tab(label='Upload EDF', children=[ # Tab for uploading edf
             dcc.Upload(
                 id='upload-edf',
                 children=html.Div([
@@ -153,11 +155,11 @@ app.layout = html.Div([ # define layout
             ),
             html.Div(id='output-data-upload')
         ]),
-        dcc.Tab(label='EEG Signals', children=[ # define tab for eeg signals
+        dcc.Tab(label='EEG Signals', children=[ # Tab for eeg signals and probably giving the warnings
             dcc.Graph(id='eeg-graph'),
             html.Div(id='warning')
         ]),
-        dcc.Tab(label='Classification',children=[
+        dcc.Tab(label='Classification',children=[ # Tabs for the classification
 
         ])
     ])
