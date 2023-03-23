@@ -65,27 +65,23 @@ def prediction(model, data):
 
     if predictions == 1:
         return html.Div([
-            html.P('You are sleepy')
-        ])
-    elif predictions == 0:
-        return html.Div([
-            html.P('You are not sleepy')
+            html.P('Awake')
         ])
     elif predictions == 2:
         return html.Div([
-            html.P('You are very sleepy')
+            html.P('Half Asleep')
         ])
     elif predictions == 3:
         return html.Div([
-            html.P('You are asleep')
+            html.P('Fully Asleep')
         ])
     elif predictions == 4:
         return html.Div([
-            html.P('You are asleep')
+            html.P('Fully Asleep')
         ])
     elif predictions == 5:
         return html.Div([
-            html.P('You are asleep')
+            html.P('Fully Asleep')
         ])
     return predictions
 
