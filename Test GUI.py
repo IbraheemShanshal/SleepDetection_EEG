@@ -116,14 +116,13 @@ def feature_extract(epochs):
     # create a new dataframe with the data, sleep stage, and subject_id columns
     data = pd.DataFrame(features_all)
     data['sleep_stage'] = sleep_stages
-    
-
-
 
     return data
 
+external_stylesheets = ['./stylesheet.css']
+
 # Here is where we will start our dash app
-app = Dash(__name__)    # create Dash app
+app = Dash(__name__, external_stylesheets=external_stylesheets)    # create Dash app
 app.title = 'Sleepiness Detection'  # set title
 server = app.server    # set server
 
