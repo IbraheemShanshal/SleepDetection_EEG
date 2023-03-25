@@ -1,8 +1,3 @@
-import base64
-import io
-import plotly.express as px
-
-import warnings
 import dash
 import pandas as pd
 from dash import dcc,html,Dash
@@ -13,8 +8,8 @@ import mne
 import pickle
 import numpy as np
 from mne_features.feature_extraction import extract_features
+import pyedflib
 
-#The first 3 functions are the one we used in our machine learning
 
 def preprocessed_data(data):
 
@@ -45,9 +40,16 @@ def preprocessed_data(data):
     raw.filter(l_freq=2, h_freq=49)
 
     # making a dictionary for scalings where eeg is the key and the value is 40e-5
-    scalings = {'eeg': 40e-5}
+    #scalings = {'eeg': 40e-5}
     #raw.plot(duration=60, scalings=scalings, remove_dc=False, )
+
     tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
+
+    # Extract the annotation from the raw file
+    annot = mne.read_annotations(data)
+    annot.crop(annot[1]['onset'] - 30 * 60, annot[-2]['onset'] + 30 * 60)
+
+    raw.set_annotations(annot, emit_warning=False)
 
 
     events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=30.)
@@ -55,80 +57,41 @@ def preprocessed_data(data):
     # Create epochs of 30 sec from the continuous signal
     epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, tmin=0., tmax=tmax, baseline=None)
 
-def get_sleep_stages(epochs):
-    """
-    Returns an array of sleep stage labels corresponding to each epoch in the given MNE Epochs object.
-    """
-    # Assuming you have access to the sleep stage information in your code, you can get it using the following:
-    sleep_stage_data = epochs.events[:, 2]
-    sleep_stages = []
+def prediction(model, data):
+    # load the model from disk
+    load_model = pickle.load(open('model.pkl', 'rb'))
 
-    # Map the sleep stage codes to their corresponding labels
-    for stage in sleep_stage_data:
-        if stage == 1:
-            sleep_stages.append('1')
-        elif stage == 2:
-            sleep_stages.append('2')
-        elif stage == 3:
-            sleep_stages.append('3')
-        elif stage == 4:
-            sleep_stages.append('4')
-        elif stage == 5:
-            sleep_stages.append('5')
-        #elif stage == 6:
-        #    sleep_stages.append('5')
-        else:
-            sleep_stages.append('UNKNOWN')
+    predictions = model.predict(load_model.get_data())
 
-    return sleep_stages
+    if predictions == 1:
+        return html.Div([
+            html.P('Awake')
+        ])
+    elif predictions == 2:
+        return html.Div([
+            html.P('Half Asleep')
+        ])
+    elif predictions == 3:
+        return html.Div([
+            html.P('Fully Asleep')
+        ])
+    elif predictions == 4:
+        return html.Div([
+            html.P('Fully Asleep')
+        ])
+    elif predictions == 5:
+        return html.Div([
+            html.P('Fully Asleep')
+        ])
+    return predictions
 
-def feature_extract(epochs):
-    #specific frequency bands
-    FREQ_BANDS = {"delta": [0.5, 4.5],
-                  "theta": [4.5, 8.5],
-                  "alpha": [8.5, 11.5],
-                  "sigma": [11.5, 15.5],
-                  "beta": [15.5, 30],
-                  }  # no gamma because it has freq higher than Ntquist frequency
-
-    warnings.simplefilter(action='ignore', category=FutureWarning)
-
-    selected_features = ['pow_freq_bands']
-
-    freq_bands = np.unique(np.concatenate(list(map(list, (FREQ_BANDS.values())))))
-
-    funcs_params = dict(pow_freq_bands__normalize=False,
-                        pow_freq_bands__ratios='all',
-                        pow_freq_bands__psd_method='fft',
-                        pow_freq_bands__freq_bands=freq_bands)
-
-    sfreq = epochs.info['sfreq']
-    features_all = extract_features(epochs.get_data(),
-                                    sfreq,
-                                    selected_funcs=selected_features,
-                                    return_as_df=True,
-                                    funcs_params=funcs_params)
-
-
-    # Get the sleep stage information, assuming it's available
-    sleep_stages = get_sleep_stages(epochs)  # replace this with your own function that gets the sleep stages
-
-    # create a new dataframe with the data, sleep stage, and subject_id columns
-    data = pd.DataFrame(features_all)
-    data['sleep_stage'] = sleep_stages
-
-    return data
-
-external_stylesheets = ['./stylesheet.css']
-
-# Here is where we will start our dash app
-app = Dash(__name__, external_stylesheets=external_stylesheets)    # create Dash app
+app = Dash(__name__)    # create Dash app
 app.title = 'Sleepiness Detection'  # set title
 server = app.server    # set server
 
 app.layout = html.Div([ # define layout
-    dcc.Tabs([  # Add Tabs function
-        dcc.Tab(label='Upload EDF', children=[ # Tab for uploading edf
+    dcc.Tabs([  # define tabs
+        dcc.Tab(label='Upload EDF', children=[ # define tab for uploading edf
             dcc.Upload(
                 id='upload-edf',
                 children=html.Div([
@@ -148,29 +111,40 @@ app.layout = html.Div([ # define layout
             ),
             html.Div(id='output-data-upload')
         ]),
-        dcc.Tab(label='EEG Signals', children=[ # Tab for eeg signals and probably giving the warnings
-            dcc.Graph(id='eeg-graph'),
+        dcc.Tab(label='EEG Signals', children=[ # define tab for eeg signals
             html.Div(id='warning')
         ]),
-        dcc.Tab(label='Classification',children=[ # Tabs for the classification
+        dcc.Tab(label='Classification',children=[
 
         ])
     ])
 ])
 
 @app.callback(Output('output-data-upload', 'children'),
-                Input('upload-edf', 'contents'),
-                State('upload-edf', 'filename'))
+                Input('upload-edf', 'contents'))
 
-def update_output(contents, filename):
+def warnings(contents):
 
     if contents is not None:
-        processed_data = preprocessed_data(contents)
+        #Read the EDF file
+        df = pyedflib.EdfReader(contents)
+        
+        processed_data = preprocessed_data(df)
+        #extracted_features = feature_extract(processed_data)
 
-        extracted_features = feature_extract(processed_data)
-    return html.Div(id = 'featured_data')
+        model = prediction(processed_data,df)
+
+        return html.Div([
+            html.H5('warning'),
+            html.Pre(model)
+        ])
+    else:
+        # If no file has been uploaded yet
+        return html.Div('Upload EDF again')
+
 
 
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
