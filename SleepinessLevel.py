@@ -9,7 +9,6 @@ from mne.datasets.sleep_physionet.age import fetch_data
 
 from mne_features.feature_extraction import extract_features
 
-#
 event_id = {'Sleep stage W': 1,
             'Sleep stage 1': 2,
             'Sleep stage 2': 3,
