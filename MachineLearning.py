@@ -53,7 +53,7 @@ for i, (train_index, test_index) in enumerate(gkf.split(X, y, groups)):
 
 
 #fit the training data set to randomforest classifier
-model.fit(X_train,y_train)
+model.fit(X_train.values,y_train)
 
 
 # Test

@@ -1,4 +1,8 @@
+import time
+import uuid
+
 import dash
+import joblib
 import pandas as pd
 from dash import dcc,html,Dash
 
@@ -9,107 +13,46 @@ import pickle
 import numpy as np
 from mne_features.feature_extraction import extract_features
 import pyedflib
+import dash_uploader as du
 
 
-def preprocessed_data(data):
 
 
-    event_id = {'Sleep stage W': 1,
-                'Sleep stage 1': 2,
-                'Sleep stage 2': 3,
-                'Sleep stage 3': 4,
-                'Sleep stage 4': 4,
-                'Sleep stage R': 5}
-
-    # Read the PSG data, raw contains the following:
-    # 2d numpy array for data
-    # times, info
-    # annotations
-    raw = mne.io.read_raw_edf(data, stim_channel='marker', misc=['rectal'])
-    #load data into memory
-    raw.load_data()
-
-    # Select only EEG
-    raw.drop_channels(['EOG horizontal', 'Resp oro-nasal', 'EMG submental', 'Temp rectal',
-                       'Event marker'])
-
-    # Extract feature names from channel names
-    #feature_names = raw.ch_names
-
-    # Filter the high-pass frequency to be 49 and low-pass to 2
-    raw.filter(l_freq=2, h_freq=49)
-
-    # making a dictionary for scalings where eeg is the key and the value is 40e-5
-    #scalings = {'eeg': 40e-5}
-    #raw.plot(duration=60, scalings=scalings, remove_dc=False, )
-
-    tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
-
-    # Extract the annotation from the raw file
-    annot = mne.read_annotations(data)
-    annot.crop(annot[1]['onset'] - 30 * 60, annot[-2]['onset'] + 30 * 60)
-
-    raw.set_annotations(annot, emit_warning=False)
-
-
-    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=30.)
-    # u, indices = np.unique(annot['description'], return_index=True)
-    # Create epochs of 30 sec from the continuous signal
-    epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, tmin=0., tmax=tmax, baseline=None)
-
-def prediction(model, data):
-    # load the model from disk
-    load_model = pickle.load(open('model.pkl', 'rb'))
-
-    predictions = model.predict(load_model.get_data())
-
-    if predictions == 1:
-        return html.Div([
-            html.P('Awake')
-        ])
-    elif predictions == 2:
-        return html.Div([
-            html.P('Half Asleep')
-        ])
-    elif predictions == 3:
-        return html.Div([
-            html.P('Fully Asleep')
-        ])
-    elif predictions == 4:
-        return html.Div([
-            html.P('Fully Asleep')
-        ])
-    elif predictions == 5:
-        return html.Div([
-            html.P('Fully Asleep')
-        ])
-    return predictions
+model, ref_col, target = joblib.load('model.pkl')
+data = pd.read_pickle('output.pkl')
 
 app = Dash(__name__)    # create Dash app
 app.title = 'Sleepiness Detection'  # set title
 server = app.server    # set server
 
+UPLOAD_FOLDER_ROOT = r"C:\Users\Cloud\IdeaProjects\SEGP-groupX\files"
+du.configure_upload(app, UPLOAD_FOLDER_ROOT)
+
+def get_upload_component(id):
+    return du.Upload(
+        id=id,
+        max_file_size=100, # 1800 Mb
+        filetypes=['edf'],
+        upload_id=uuid.uuid1(), # Unique session id
+        max_files=2,  # Maximum number of files allowed to be uploaded
+    )
+
+
 app.layout = html.Div([ # define layout
     dcc.Tabs([  # define tabs
         dcc.Tab(label='Upload EDF', children=[ # define tab for uploading edf
-            dcc.Upload(
-                id='upload-edf',
-                children=html.Div([
-                    'Drag and Drop or ',
-                    html.A('Select Files')
-                ]),
-                style={
-                    'width': '100%',
-                    'height': '60px',
-                    'lineHeight': '60px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'textAlign': 'center',
-                },
-                multiple=False
+            html.Div(
+                [
+                    get_upload_component(id='dash-uploader'),
+                    html.Div(id='callback-output'),
+                ],
+
             ),
-            html.Div(id='output-data-upload')
+            html.Button('Show output', id='show-row-button'),
+            html.Div(
+                id='output-data-upload',
+            ),
+            #dcc.Interval(id='interval', interval=2000, n_intervals=0)
         ]),
         dcc.Tab(label='EEG Signals', children=[ # define tab for eeg signals
             html.Div(id='warning')
@@ -120,19 +63,58 @@ app.layout = html.Div([ # define layout
     ])
 ])
 
+'''
 @app.callback(Output('output-data-upload', 'children'),
-                Input('upload-edf', 'contents'))
+              State('show-row-button', 'n_clicks'),
+              Input('interval', 'n_intervals')
+)
+'''
+@du.callback(
+    output=Output('callback-output', 'children'),
+    id='dash-uploader',
+)
 
+@app.callback(Output('output-data-upload', 'children'),
+              Input('show-row-button', 'n_clicks')
+              )
+
+
+
+def prediction(n_clicks):
+    # load the model from disk
+    values_list = []
+    if n_clicks is None:
+        return ''
+    else:
+        data.reset_index(drop=True, inplace=True)
+        for i in range(len(data)):
+            value = data.iloc[i].values
+            #time.sleep(1)
+            #print(value)
+            values_list.append(html.Div([html.P(value)]))
+            # Return a Div containing the current value
+        return html.Div(values_list)
+        #return values_list
+
+#@app.callback(Output('output-data-upload', 'children'),
+#                Input('upload-edf', 'contents'))
+
+
+#def show_output(n_intervals):
+#        return prediction(n_intervals)
+
+
+'''
 def warnings(contents):
 
     if contents is not None:
         #Read the EDF file
-        df = pyedflib.EdfReader(contents)
-        
-        processed_data = preprocessed_data(df)
+        #df = pyedflib.EdfReader(contents)
+
         #extracted_features = feature_extract(processed_data)
 
-        model = prediction(processed_data,df)
+
+        prediction()
 
         return html.Div([
             html.H5('warning'),
@@ -141,6 +123,10 @@ def warnings(contents):
     else:
         # If no file has been uploaded yet
         return html.Div('Upload EDF again')
+'''
+
+
+
 
 
 
