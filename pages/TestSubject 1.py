@@ -1,7 +1,6 @@
 import dash
 from dash import dcc, html, Dash, callback
 import pickle
-import winsound
 import random
 import time
 
@@ -26,7 +25,7 @@ def layout(prediction, awake_time, half_asleep_time, fully_asleep_time):
         ], style={'textAlign': 'center'}),
         dcc.Interval(
             id='update-prediction-interval',
-            interval=10000,  # 30 seconds in milliseconds
+            interval=10000,  # this is in miliseconds
             n_intervals=0
         ),
         html.Div([
