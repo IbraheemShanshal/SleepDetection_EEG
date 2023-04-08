@@ -1,6 +1,8 @@
 from dash import Dash, html, dcc
 import dash
 
+#RUN THIS FILE FOR GUI
+
 app = Dash(__name__, use_pages=True)
 
 app.layout = html.Div([
@@ -10,7 +12,7 @@ app.layout = html.Div([
         [
             html.Div(
                 dcc.Link(
-                    f"{page['name']} - {page['path']}", href=page['path']
+                    f"{page['name']}", href=page['path']
                 )
             )
             for page in dash.page_registry.values()
