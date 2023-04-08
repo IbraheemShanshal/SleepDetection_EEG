@@ -4,9 +4,9 @@ import pickle
 import random
 import time
 
+#can ignore the dummy gui if want to try this approach
 
-
-dash.register_page(__name__,path='/')
+dash.register_page(__name__,path='/') #this command helps connect to the main gui
 
 # Load the pickle file when the Dash app is launched
 with open('output.pkl', 'rb') as f:
