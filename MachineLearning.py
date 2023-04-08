@@ -4,7 +4,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import FunctionTransformer
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import make_pipeline, Pipeline
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -39,11 +39,6 @@ n_splits = 3
 gkf = GroupKFold(n_splits=n_splits)
 
 
-#random_state=42 -> fixed the seed value for the random number generator used by the algorithm
-# number of decision trees = 100
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-
-
 for i, (train_index, test_index) in enumerate(gkf.split(X, y, groups)):
     print(f"Fold {i}:")
     print(f"  Train: index={train_index}, group={groups[train_index].values}")
@@ -51,6 +46,17 @@ for i, (train_index, test_index) in enumerate(gkf.split(X, y, groups)):
     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
     y_train, y_test = y[train_index], y[test_index]
 
+
+#random_state=42 -> fixed the seed value for the random number generator used by the algorithm
+# number of decision trees = 100
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+#preprocessing = [
+#    ('preprocessing', sl.eeg_power_band(sl.process_data(filtered_data)))
+#]
+
+
+#pipeline = Pipeline(steps=[('preprocessing', preprocessing), ('model', model)])
 
 #fit the training data set to randomforest classifier
 model.fit(X_train.values,y_train)

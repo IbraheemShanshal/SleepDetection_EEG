@@ -5,7 +5,7 @@ import os
 import warnings
 
 import mne
-from mne.datasets.sleep_physionet.age import fetch_data
+#from mne.datasets.sleep_physionet.age import fetch_data
 
 from mne_features.feature_extraction import extract_features
 
@@ -39,7 +39,7 @@ def process_data(dpath):            # new way to write with added parameter is "
 
     # making a dictionary for scalings where eeg is the key and the value is 40e-5
     scalings = {'eeg': 40e-5}
-    raw.plot(duration=60, scalings=scalings, remove_dc=False, )
+    #raw.plot(duration=60, scalings=scalings, remove_dc=False, )
     tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
 
     # Extract the annotation from the raw file
@@ -81,21 +81,21 @@ def process_data(dpath):            # new way to write with added parameter is "
 subject_ids = range(0, 10) #We can just put range(10) where the ids will start from 0-9
 
 #Download all the datasets
-all_data = fetch_data(subjects=subject_ids, recording=[1])
+#all_data = fetch_data(subjects=subject_ids, recording=[1])
 
-all_ep = [process_data(dpath) for dpath in all_data]
+#all_ep = [process_data(dpath) for dpath in all_data]
 
 #Loop the epochs data gathering for each data downloaded so that it does not look so cluttered
-epochs_datas = [all_ep[i] for i in range(len(all_ep))]
+#epochs_datas = [all_ep[i] for i in range(len(all_ep))]
 
 
 ## Here is where i loop thru all preprocessed datas and assign the subject id to it
 
-for i in range(len(all_ep)):
-    epochs_data = all_ep[i]
-    file_name = os.path.basename(all_data[i][0])
-    subject_id = file_name[:8]
-    epochs_data.info['subject_info'] = {'id': str(subject_id)} 
+#for i in range(len(all_ep)):
+#    epochs_data = all_ep[i]
+#    file_name = os.path.basename(all_data[i][0])
+#    subject_id = file_name[:8]
+#    epochs_data.info['subject_info'] = {'id': str(subject_id)}
 
             
 ##
@@ -117,17 +117,9 @@ for i in range(len(all_data)):
     print(subject_name)
 """
 
-#this is all a trial:
-#for i in range(len(all_data)):
-#    file_name = os.path.basename(all_data[i][0])
-#    subject_name = file_name[:8]
-#    print(subject_name)
-
-
-
 #Do something with the subject's data or name
 
-
+"""
 stage_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 fig, (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10) = plt.subplots(ncols=10, figsize=(50, 6))
@@ -148,6 +140,8 @@ ax1.set(ylabel='µV^2/Hz (dB)')
 ax2.legend(ax2.lines[2::3], stages)
 plt.tight_layout()
 plt.show()
+"""
+
 
 def get_sleep_stages(epochs):
     """
@@ -228,16 +222,16 @@ def eeg_power_band(epochs):
 
 #Looping sequence for dataframe
 dfs = [] #Creates an empty list to store the dfs
-for epochs_data in all_ep:
-    df = eeg_power_band(epochs_data)
-    dfs.append(df)
-    print(df.head()) #Print first five data from the dataframe for all df to see whether everything is working accordingly
+#for epochs_data in all_ep:
+#    df = eeg_power_band(epochs_data)
+#    dfs.append(df)
+#    print(df.head()) #Print first five data from the dataframe for all df to see whether everything is working accordingly
 
 #Concatenate all the dataframes
-df = pd.concat(dfs, ignore_index=True)
+#df = pd.concat(dfs, ignore_index=True)
 
 
 # print the concatenated dataframe
 #print(df)
-df.to_csv('test.csv',index=False)
-df.to_pickle('data.pkl')
+#df.to_csv('test.csv',index=False)
+#df.to_pickle('data.pkl')

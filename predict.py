@@ -1,28 +1,62 @@
 import joblib
-import numpy as np
 import pandas as pd
+import os
+from mne.datasets.sleep_physionet.age import fetch_data
 
 
 from sklearn.metrics import confusion_matrix
+from SleepinessLevel import process_data
+from SleepinessLevel import eeg_power_band
 
 
-df = pd.read_pickle('data.pkl')
+event_id = {'Sleep stage W': 1,
+            'Sleep stage 1': 2,
+            'Sleep stage 2': 3,
+            'Sleep stage 3': 4,
+            'Sleep stage 4': 4,
+            'Sleep stage R': 5}
 
-# Define the subject ID to use for prediction
-subject_ids = ['SC4091E0']
 
-# Filter your data to only include the selected subject
-new_data = df[df['subject_id'].isin(subject_ids)]
 
-#select random 20 epochs from this selected subject
-random_epoch = new_data.sample(20)
+
+#Download all the datasets
+#all_data = fetch_data(subjects=[1], recording=[1])
+
+all_data = [['/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files/03eea394-cd96-11ed-81f4-acde48001122/SC4002E0-PSG.edf','/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files/03eea394-cd96-11ed-81f4-acde48001122/SC4002EC-Hypnogram.edf']]
+
+all_ep = [process_data(dpath) for dpath in all_data]
+
+#Loop the epochs data gathering for each data downloaded so that it does not look so cluttered
+epochs_datas = [all_ep[i] for i in range(len(all_ep))]
+
+
+## Here is where i loop thru all preprocessed datas and assign the subject id to it
+
+for i in range(len(all_ep)):
+    epochs_data = all_ep[i]
+    file_name = os.path.basename(all_data[i][0])
+    subject_id = file_name[:8]
+    epochs_data.info['subject_info'] = {'id': str(subject_id)}
+
+
+
+#Looping sequence for dataframe
+dfs = [] #Creates an empty list to store the dfs
+for epochs_data in all_ep:
+    df = eeg_power_band(epochs_data)
+    dfs.append(df)
+    #print(df.head()) #Print first five data from the dataframe for all df to see whether everything is working accordingly
+
+#Concatenate all the dataframes
+df = pd.concat(dfs, ignore_index=True)
+
 
 #load model
 model, ref_col, target = joblib.load('model.pkl')
 
 
-X_new = random_epoch[ref_col]
-y_new = random_epoch[target]
+X_new = df[ref_col]
+y_new = df[target]
 predictions = model.predict(X_new)
 
 
