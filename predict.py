@@ -1,12 +1,49 @@
 import joblib
 import pandas as pd
 import os
-from mne.datasets.sleep_physionet.age import fetch_data
+import sys
 
 
 from sklearn.metrics import confusion_matrix
 from SleepinessLevel import process_data
 from SleepinessLevel import eeg_power_band
+
+
+UPLOAD_FOLDER = os.path.join(os.getcwd(), r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files")
+
+folder_id = sys.argv[1]
+folder_path = os.path.join(UPLOAD_FOLDER, folder_id)
+print(folder_path)
+print(folder_id)
+
+
+# Get a list of all the files in the folder
+files = os.listdir(folder_path)
+
+# Select the first file from the list
+if len(files) > 0:
+    first_file = files[0]
+    second_file = files[1]
+else:
+    print("No files found in the folder.")
+
+event_id = {'Sleep stage W': 1,
+            'Sleep stage 1': 2,
+            'Sleep stage 2': 3,
+            'Sleep stage 3': 4,
+            'Sleep stage 4': 4,
+            'Sleep stage R': 5}
+
+file1 = os.path.join(folder_path, first_file)
+file2 = os.path.join(folder_path, second_file)
+print(file1)
+print(file2)
+
+#Download all the datasets
+#all_data = fetch_data(subjects=[1], recording=[1])
+
+all_data = [[file1,file2]]
+
 
 
 event_id = {'Sleep stage W': 1,
@@ -22,7 +59,9 @@ event_id = {'Sleep stage W': 1,
 #Download all the datasets
 #all_data = fetch_data(subjects=[1], recording=[1])
 
-all_data = [['/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files/03eea394-cd96-11ed-81f4-acde48001122/SC4002E0-PSG.edf','/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files/03eea394-cd96-11ed-81f4-acde48001122/SC4002EC-Hypnogram.edf']]
+#all_data = [['/Users/yanhui/mne_data/physionet-sleep-data/SC4001E0-PSG.edf','/Users/yanhui/mne_data/physionet-sleep-data/SC4001EC-Hypnogram.edf']]
+
+#all_data = [['/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files/801f57d6-793f-45c6-af61-22f57d5937ae/SC4001E0-PSG.edf','/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files/801f57d6-793f-45c6-af61-22f57d5937ae/SC4001EC-Hypnogram.edf']]
 
 all_ep = [process_data(dpath) for dpath in all_data]
 
@@ -82,4 +121,5 @@ output_df.to_pickle('output.pkl')
 print(predictions)
 
 print(confusion_matrix(y_new, predictions))
+
 
