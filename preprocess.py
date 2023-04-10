@@ -9,7 +9,6 @@ from mne.datasets.sleep_physionet.age import fetch_data
 
 from mne_features.feature_extraction import extract_features
 
-#
 event_id = {'Sleep stage W': 1,
             'Sleep stage 1': 2,
             'Sleep stage 2': 3,
@@ -17,9 +16,8 @@ event_id = {'Sleep stage W': 1,
             'Sleep stage 4': 4,
             'Sleep stage R': 5}
 
-# Added another parameter for subject ID
-#DISCLAIMER: this file only uses 4 datasets in order to save time to when fixing mistake.
-def process_data(dpath, subject_id):
+# this function will process
+def process_data(dpath):            # new way to write with added parameter is " def process_data(dpath, subject_id) "
 
     # Read the PSG data, raw contains the following:
     # 2d numpy array for data
@@ -34,7 +32,7 @@ def process_data(dpath, subject_id):
                        'Event marker'])
 
     # Extract feature names from channel names
-    #feature_names = raw.ch_names
+    feature_names = raw.ch_names
 
     # Filter the high-pass frequency to be 49 and low-pass to 2
     raw.filter(l_freq=2, h_freq=49)
@@ -42,7 +40,7 @@ def process_data(dpath, subject_id):
     # making a dictionary for scalings where eeg is the key and the value is 40e-5
     scalings = {'eeg': 40e-5}
     raw.plot(duration=60, scalings=scalings, remove_dc=False, )
-    tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
+    tmax = 10. - 1. / raw.info['sfreq']  # Epoch size
 
     # Extract the annotation from the raw file
     annot = mne.read_annotations(dpath[1])
@@ -50,54 +48,78 @@ def process_data(dpath, subject_id):
 
     raw.set_annotations(annot, emit_warning=False)
 
-    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=30.)
+    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=10.)
     # u, indices = np.unique(annot['description'], return_index=True)
     # Create epochs of 30 sec from the continuous signal
     epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, tmin=0., tmax=tmax, baseline=None)
-    
-    #hopefully updates the subject id for the subjects
-    epochs.info['subject_info'] = {'id': str(subject_id)}
+
+    # we can also put this code here but need to add a new parameter for subject_id above
+    # epochs_data.info['subject_info'] = {'id': str(subject_id)}
+
 
     return epochs
-    
+
+
+
+# assigning numbers here for easy readability
+# Data for sbj 1 to 10
+
 #Get the range of subject that want to be processed
-subject_ids = range(1, 5)
+
+"""old code"""
+# Read the PSG data and Hypnograms to create a raw object and also probably assigning the subject id
+#all_ep = [process_data(dpath, subject_id) for dpath, subject_id in zip(all_data, str(subject_ids))]
+
+#Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10 = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+# Download data from sleep Physionet dataset
+#all_data = fetch_data(subjects=[Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, Data10], recording=[1])
+# assigning data to epochs
+#epochs_data1, epochs_data2, epochs_data3, epochs_data4, epochs_data5, epochs_data6, epochs_data7, epochs_data8, epochs_data9, epochs_data10 = all_ep
+# Read the PSG data and Hypnograms to create a raw object
+
+"""new code"""
+subject_ids = range(0, 10) #We can just put range(10) where the ids will start from 0-9
 
 #Download all the datasets
-all_data = fetch_data(subjects=subject_id, recording=[1])
+all_data = fetch_data(subjects=subject_ids, recording=[1])
 
-# Read the PSG data and Hypnograms to create a raw object and also probably assigning the subject id
-all_ep = [process_data(dpath, subject_id) for dpath, subject_id in zip(all_data, str(subject_id))]
+all_ep = [process_data(dpath) for dpath in all_data]
 
-#Loop the epochs data so that it does not look so cluttered
+#Loop the epochs data gathering for each data downloaded so that it does not look so cluttered
+epochs_datas = [all_ep[i] for i in range(len(all_ep))]
+
+
+## Here is where i loop thru all preprocessed datas and assign the subject id to it
+
+for i in range(len(all_ep)):
+    epochs_data = all_ep[i]
+    file_name = os.path.basename(all_data[i][0])
+    subject_id = file_name[:8]
+    epochs_data.info['subject_info'] = {'id': str(subject_id)}
+
+
+##
+"""
+#Can also write something like this 
+subject_ids = range(10)
+
+all_data = fetch_data(subjects=subject_ids, recording=[1])
+all_ep = [process_data(dpath, subject_id) for dpath, subject_id in zip(all_data, subject_ids)]
+
+#Loop the epochs data so that it does not look so cluttering
 epochs_data = [all_ep[i] for i in range(len(all_ep))]
-
-#optional if want to read the info of each epoch
-for epoch in epochs_data:
-    print(epoch.info)
 
 #this is all a trial:
 for i in range(len(all_data)):
     file_name = os.path.basename(all_data[i][0])
-    file_name = str(subject_ids[i])
+    file_name = str(subject_ids[i]) #This will make the file name into integers     
     subject_name = file_name[:8]
     print(subject_name)
+"""
 
 #Do something with the subject's data or name
 
 
-# print(epochs_data1.info)
-# print(epochs_data1.events[:,2])
-# print(epochs_data2.info)
-# print(epochs_data3.info)
-# print(epochs_data4.info)
-# print(epochs_data5.info)
-# print(epochs_data6.info)
-# print(epochs_data7.info)
-# print(epochs_data8.info)
-# print(epochs_data9.info)
-# print(epochs_data10.info)
-'''
 stage_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 fig, (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10) = plt.subplots(ncols=10, figsize=(50, 6))
@@ -106,8 +128,7 @@ stages = sorted(event_id.keys())
 for ax, title, epochs in zip([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10],
                              ['Data1', 'Data2', 'Data3', 'Data4', 'Data5', 'Data6', 'Data7', 'Data8', 'Data9',
                               'Data10'],
-                             [epochs_data1, epochs_data2, epochs_data3, epochs_data4, epochs_data5, epochs_data6,
-                              epochs_data7, epochs_data8, epochs_data9, epochs_data10]):
+                             epochs_datas):
 
     for stage, color in zip(stages, stage_colors):
         ps = epochs[stage].compute_psd(fmin=0.1, fmax=40.)
@@ -118,7 +139,9 @@ for ax, title, epochs in zip([ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10]
 ax1.set(ylabel='µV^2/Hz (dB)')
 ax2.legend(ax2.lines[2::3], stages)
 plt.tight_layout()
-plt.show()'''
+plt.show()
+
+
 
 def get_sleep_stages(epochs):
     """
@@ -175,12 +198,8 @@ def eeg_power_band(epochs):
                                     return_as_df=True,
                                     funcs_params=funcs_params)
 
-    # Get the subject ID instead of having the name file
-    for i in range(len(all_data)):
-
-        file_name = str(subject_ids[i])
-        subject_name = file_name[:8]
-
+    file_name = epochs.info['subject_info']['id']
+    subject_name = file_name[:8]
 
     # Get the sleep stage information, assuming it's available
     sleep_stages = get_sleep_stages(epochs)  # replace this with your own function that gets the sleep stages
@@ -201,20 +220,18 @@ def eeg_power_band(epochs):
 # features_all, subject_name = eeg_power_band(epochs_data1)
 # selected_features = ['pow_freq_bands']
 
-#Below need to change to a loop to match withs epochs_data above
-df1 = eeg_power_band(epochs_data1)
-print(df1.head())
-df2 = eeg_power_band(epochs_data2)
-print(df2.head())
-df3 = eeg_power_band(epochs_data3)
-df4 = eeg_power_band(epochs_data4)
+#Looping sequence for dataframe
+dfs = [] #Creates an empty list to store the dfs
+for epochs_data in all_ep:
+    df = eeg_power_band(epochs_data)
+    dfs.append(df)
+    print(df.head()) #Print first five data from the dataframe for all df to see whether everything is working accordingly
 
-df = pd.concat([df1, df2, df3, df4])
+#Concatenate all the dataframes
+df = pd.concat(dfs, ignore_index=True)
+
 
 # print the concatenated dataframe
-#print(df)
+print(df)
 df.to_csv('test.csv',index=False)
 df.to_pickle('data.pkl')
-
-
-#dont use this file as final product, this file is use for testing and trying to fix mistake before pushing to the main file

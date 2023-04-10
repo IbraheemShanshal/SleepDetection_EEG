@@ -7,16 +7,7 @@ import pandas as pd
 from dash import dcc,html,Dash
 
 from dash.dependencies import Input, Output, State
-import plotly.graph_objs as go
-import mne
-import pickle
-import numpy as np
-from mne_features.feature_extraction import extract_features
-import pyedflib
 import dash_uploader as du
-
-
-
 
 model, ref_col, target = joblib.load('model.pkl')
 data = pd.read_pickle('output.pkl')
@@ -25,7 +16,7 @@ app = Dash(__name__)    # create Dash app
 app.title = 'Sleepiness Detection'  # set title
 server = app.server    # set server
 
-UPLOAD_FOLDER_ROOT = r"C:\Users\Cloud\IdeaProjects\SEGP-groupX\files"
+UPLOAD_FOLDER_ROOT = r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files"
 du.configure_upload(app, UPLOAD_FOLDER_ROOT)
 
 def get_upload_component(id):
@@ -48,7 +39,7 @@ app.layout = html.Div([ # define layout
                 ],
 
             ),
-            html.Button('Show output', id='show-row-button'),
+            html.Button('Show output', id='show-row-button', n_clicks=0),
             html.Div(
                 id='output-data-upload',
             ),
@@ -83,9 +74,7 @@ app.layout = html.Div([ # define layout
 def prediction(n_clicks):
     # load the model from disk
     values_list = []
-    if n_clicks is None:
-        return ''
-    else:
+    if n_clicks > 0:
         data.reset_index(drop=True, inplace=True)
         for i in range(len(data)):
             value = data.iloc[i].values

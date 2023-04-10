@@ -40,7 +40,7 @@ def process_data(dpath):            # new way to write with added parameter is "
     # making a dictionary for scalings where eeg is the key and the value is 40e-5
     scalings = {'eeg': 40e-5}
     #raw.plot(duration=60, scalings=scalings, remove_dc=False, )
-    tmax = 30. - 1. / raw.info['sfreq']  # Epoch size
+    tmax = 10. - 1. / raw.info['sfreq']  # Epoch size
 
     # Extract the annotation from the raw file
     annot = mne.read_annotations(dpath[1])
@@ -48,7 +48,7 @@ def process_data(dpath):            # new way to write with added parameter is "
 
     raw.set_annotations(annot, emit_warning=False)
 
-    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=30.)
+    events, _ = mne.events_from_annotations(raw, event_id=event_id, chunk_duration=10.)
     # u, indices = np.unique(annot['description'], return_index=True)
     # Create epochs of 30 sec from the continuous signal
     epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, tmin=0., tmax=tmax, baseline=None)
@@ -221,7 +221,7 @@ def eeg_power_band(epochs):
 # selected_features = ['pow_freq_bands']
 
 #Looping sequence for dataframe
-dfs = [] #Creates an empty list to store the dfs
+#dfs = [] #Creates an empty list to store the dfs
 #for epochs_data in all_ep:
 #    df = eeg_power_band(epochs_data)
 #    dfs.append(df)
