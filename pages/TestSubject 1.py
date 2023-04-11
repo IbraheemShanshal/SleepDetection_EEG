@@ -1,18 +1,18 @@
 import dash
 from dash import dcc, html, Dash, callback
 import pickle
-import random
 import time
 
-#can ignore the dummy gui if want to try this approach
+from dash.exceptions import PreventUpdate
 
-dash.register_page(__name__,path='/') #this command helps connect to the main gui
+dash.register_page(__name__)
 
 # Load the pickle file when the Dash app is launched
 with open('output.pkl', 'rb') as f:
     data = pickle.load(f)
-    prediction = "Half asleep"
-
+    data = data.iloc[:, 0].tolist()  # Convert the DataFrame to a list, iloc is for specific column
+    prediction = data[0] if data else None  # make the first content in pkl as first output
+    nextline = 1  # Go to next line of output by 1
 
 start_time = time.time()
 
@@ -21,33 +21,35 @@ def layout(prediction, awake_time, half_asleep_time, fully_asleep_time):
     return html.Div([
         html.Div(id='page-content', style={'textAlign': 'center'}),
         html.Div([
-            html.Button('Start Drive', id='start-drive-button', n_clicks=0, style={'borderRadius': '50%', 'height': '150px', 'width': '150px', 'fontSize': '24px', 'backgroundColor': 'red', 'color': 'white'})
+            html.Button('Start Drive', id='start-drive-button', n_clicks=0,
+                        style={'borderRadius': '50%', 'height': '150px', 'width': '150px', 'fontSize': '24px',
+                               'backgroundColor': 'red', 'color': 'white'})
         ], style={'textAlign': 'center'}),
-        dcc.Interval(
-            id='update-prediction-interval',
-            interval=10000,  # this is in miliseconds
+        dcc.Interval(  # For updating in realtime without having to refresh
+            id='interval',
             n_intervals=0
         ),
         html.Div([
             html.Div([
                 html.Details([
-                    html.Summary('sleep summary', style= {'textAlign': 'center'}),
+                    html.Summary('sleep summary', style={'textAlign': 'center'}),
                     html.Div([
                         html.Div([
-                            html.H2('Time Spent Awake', style= {'textAlign': 'center'}),
-                            html.H1(f'{awake_time} hours', style= {'textAlign': 'center', 'font-size': '2em'})
+                            html.H2('Time Spent Awake', style={'textAlign': 'center'}),
+                            html.H1(f'{awake_time} hours', style={'textAlign': 'center', 'font-size': '2em'})
                         ], className='col-md-4'),
                         html.Div([
-                            html.H2('Time Spent Half Asleep', style= {'textAlign': 'center'}),
-                            html.H1(f'{half_asleep_time} hours', style= {'textAlign': 'center'})
+                            html.H2('Time Spent Half Asleep', style={'textAlign': 'center'}),
+                            html.H1(f'{half_asleep_time} hours', style={'textAlign': 'center'})
                         ], className='col-md-4'),
                         html.Div([
-                            html.H2('Time Spent Fully Asleep', style= {'textAlign': 'center'}),
-                            html.H1(f'{fully_asleep_time} hours', style= {'textAlign': 'center'})
+                            html.H2('Time Spent Fully Asleep', style={'textAlign': 'center'}),
+                            html.H1(f'{fully_asleep_time} hours', style={'textAlign': 'center'})
                         ], className='col-md-4'),
                     ], className='row', style={'marginBottom': '5%'})
                 ], style={'backgroundColor': '#3B296A'})
             ], style={'backgroundColor': '#191A21'})])])
+
 
 # Define the layout of the prediction page
 def prediction_layout(prediction):
@@ -81,20 +83,29 @@ def prediction_layout(prediction):
 # Define the layout of the app
 layout = layout(prediction, 0, 0, 0)
 
-# Define the callback for the start-drive-button
+
+# Define the callback for the start-drive-button and interval
 @callback(dash.dependencies.Output('page-content', 'children'),
-    dash.dependencies.Input('start-drive-button', 'n_clicks'),
-    dash.dependencies.Input('update-prediction-interval', 'n_intervals'))
-
+          dash.dependencies.Input('start-drive-button', 'n_clicks'),
+          dash.dependencies.Input('interval', 'n_intervals'))
 def toggle_prediction_layout(n_clicks, n_intervals):
-    if n_intervals > 0:
-        # Update prediction randomly
-        prediction = random.choice(["Awake", "Half asleep", "Fully asleep"])
+    global start_time, prediction, nextline, data
+
+    if n_clicks is None:  # this is to make sure there is nothing displayed before pressing the start button
+        return html.Div()
+    elif n_clicks == 1 or n_intervals < 0:  # This is to make it so that the prediction only appears after the start 
+        # button is pressed
+        timer = time.time() - start_time
+        if timer > 10:  # Update prediction every 10 seconds *note: change to liking
+            if data and nextline < len(data):
+                prediction = data[nextline]  # Get next content from output.pkl
+                nextline = (nextline + 1) % len(data)  # Go to the next line in output.pkl
+            else:
+                prediction = None
+            start_time = time.time()  # Reset start button
         return prediction_layout(prediction)
-
-
-# Run the app
-
+    else:
+        raise PreventUpdate # There will be no update if the button is not pressed
 
 
 
