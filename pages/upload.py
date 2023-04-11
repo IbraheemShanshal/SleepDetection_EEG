@@ -8,7 +8,7 @@ from dash.dependencies import Input, Output, State
 from dash import dcc, html, callback
 
 
-dash.register_page(__name__, path='/')
+dash.register_page(__name__, path='/', name="Upload Page")
 
 UPLOAD_FOLDER_ROOT = r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files"
 
@@ -25,7 +25,7 @@ layout = html.Div([
             'Drag and drop or click to select a file to upload.'
         ]),
         style={
-            'width': '100%',
+            'width': '99%',
             'height': '60px',
             'lineHeight': '60px',
             'borderWidth': '1px',
