@@ -5,7 +5,7 @@ import time
 
 from dash.exceptions import PreventUpdate
 
-dash.register_page(__name__         )
+dash.register_page(__name__, name="Start_Drive")
 
 # Load the pickle file when the Dash app is launched
 with open('output.pkl', 'rb') as f:

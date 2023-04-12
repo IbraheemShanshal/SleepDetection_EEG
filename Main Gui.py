@@ -22,7 +22,10 @@ sidebar = dbc.Nav(
 app.layout = dbc.Container(
     [
         dbc.Row([
-            dbc.Col(html.H1("Sleep Stages App example", style={'textAlign': 'center'}, className='header')),
+            dbc.Col(
+                [
+                ], xs=1, sm=1, md=1, lg=1, xl=1, xxl=1),
+            dbc.Col(html.H1("Sleep Stages App", style={'textAlign': 'center'}, className='header')),
         ]),
         html.Hr(),
         dbc.Row(
@@ -33,8 +36,14 @@ app.layout = dbc.Container(
                     ], xs=2, sm=2, md=1, lg=1, xl=1, xxl=1, style={'height': '99%'}),
                 dbc.Col(
                     [
+                    ], xs=1, sm=1, md=1, lg=1, xl=1, xxl=1),
+                dbc.Col(
+                    [
                         dash.page_container
-                    ], xs=9, sm=9, md=11, lg=11, xl=11, xxl=11)
+                    ], xs=7, sm=7, md=9, lg=9, xl=9, xxl=9),
+                dbc.Col(
+                    [
+                    ], xs=1, sm=1, md=1, lg=1, xl=1, xxl=1),
             ]
         )
 

@@ -8,7 +8,7 @@ from dash.dependencies import Input, Output, State
 from dash import dcc, html, callback
 
 
-dash.register_page(__name__, path='/', name="Upload Page")
+dash.register_page(__name__, path='/', name="Upload_Page")
 
 UPLOAD_FOLDER_ROOT = r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files"
 
