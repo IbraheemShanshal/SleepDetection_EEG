@@ -10,11 +10,11 @@ from dash import dcc, html, callback
 
 dash.register_page(__name__, path='/', name="Upload_Page")
 
-UPLOAD_FOLDER_ROOT = r"/Users/Cloud/IdeaProjects/SEGP-groupX/files"
+UPLOAD_FOLDER_ROOT = r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files"
 
 
 # Set the upload folder
-UPLOAD_FOLDER = os.path.join(os.getcwd(), r"/Users/Cloud/IdeaProjects/SEGP-groupX/files")
+UPLOAD_FOLDER = os.path.join(os.getcwd(), r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files")
 
 # Define the layout of the home page
 layout = html.Div([
