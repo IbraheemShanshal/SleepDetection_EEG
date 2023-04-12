@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 
 #RUN THIS FILE FOR GUI
 
-app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.SPACELAB])
+app = dash.Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.SPACELAB])
 
 sidebar = dbc.Nav(
     [
