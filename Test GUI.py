@@ -16,7 +16,7 @@ app = Dash(__name__)    # create Dash app
 app.title = 'Sleepiness Detection'  # set title
 server = app.server    # set server
 
-UPLOAD_FOLDER_ROOT = r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files"
+UPLOAD_FOLDER_ROOT = r"/Users/Cloud/IdeaProjects/SEGP-groupX/files"
 du.configure_upload(app, UPLOAD_FOLDER_ROOT)
 
 def get_upload_component(id):
