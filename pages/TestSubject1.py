@@ -41,7 +41,7 @@ def prediction_layout(prediction):
     if prediction == "Awake":
         return html.Div([
             html.H1('You are currently'),
-            html.Img(src='../assets/Awake.jpg'),
+            html.Img(src='../assets/Awake.png'),
             html.H2('Fully Awake'),
 
         ])
@@ -76,11 +76,11 @@ def sleep_summary( awake_time, half_asleep_time, fully_asleep_time):
                         ], className='col-md-4'),
                         html.Div([
                             html.H2('Time Spent Half Asleep', style={'textAlign': 'center'}),
-                            html.H1(f'{half_asleep_time} seconds', style={'textAlign': 'center'})
+                            html.H1(f'{half_asleep_time} seconds', style={'textAlign': 'center','font-size': '2em'})
                         ], className='col-md-4'),
                         html.Div([
                             html.H2('Time Spent Fully Asleep', style={'textAlign': 'center'}),
-                            html.H1(f'{fully_asleep_time} seconds', style={'textAlign': 'center'})
+                            html.H1(f'{fully_asleep_time} seconds', style={'textAlign': 'center','font-size': '2em'})
                         ], className='col-md-4'),
                     ], className='row', style={'marginBottom': '5%'})
                 ], style={'backgroundColor': '#3B296A'})

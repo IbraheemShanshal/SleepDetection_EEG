@@ -9,7 +9,7 @@ from SleepinessLevel import process_data
 from SleepinessLevel import eeg_power_band
 
 
-UPLOAD_FOLDER = os.path.join(os.getcwd(), r"/Users/Cloud/IdeaProjects/SEGP-groupX/files")
+UPLOAD_FOLDER = os.path.join(os.getcwd(), r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files")
 
 folder_id = sys.argv[1]
 folder_path = os.path.join(UPLOAD_FOLDER, folder_id)
