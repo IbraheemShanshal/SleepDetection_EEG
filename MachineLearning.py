@@ -3,14 +3,11 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GroupKFold
-from sklearn.preprocessing import FunctionTransformer
-from sklearn.pipeline import make_pipeline, Pipeline
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import joblib
-import SleepinessLevel as sl
+
 
 df = pd.read_pickle('data.pkl')
 
@@ -51,12 +48,6 @@ for i, (train_index, test_index) in enumerate(gkf.split(X, y, groups)):
 # number of decision trees = 100
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 
-#preprocessing = [
-#    ('preprocessing', sl.eeg_power_band(sl.process_data(filtered_data)))
-#]
-
-
-#pipeline = Pipeline(steps=[('preprocessing', preprocessing), ('model', model)])
 
 #fit the training data set to randomforest classifier
 model.fit(X_train.values,y_train)
@@ -102,26 +93,6 @@ print(X_train.columns[indices])
 plt.bar(range(X_train.shape[1]), importances[indices])
 plt.xticks(range(X_train.shape[1]), X_train.columns[indices], rotation=90)
 plt.show()
-
-"""
-# later on map to output to GUI using this
-output = {
-    '1': 'Awake',#change to output string that we want to show on GUI
-    '2': 'Half asleep',
-    '3': 'Fully asleep',
-    '4': 'Fully asleep',
-    '5': 'Fully asleep'
-}
-
-
-outputs = [output[value] for value in y_pred]
-
-output_df = pd.DataFrame({'output': outputs})
-
-output_df.to_csv('output.csv',index=False)
-output_df.to_pickle('output.pkl')
-
-"""
 
 
 ref_col = list(X.columns)

@@ -18,5 +18,3 @@ layout = dbc.Container([
 )),
     ]),
 ])
-
-#    background-color: #1c1446;

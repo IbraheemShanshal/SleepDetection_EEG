@@ -7,46 +7,15 @@ import base64
 import dash
 from dash.dependencies import Input, Output, State
 from dash import dcc, html, callback
-import dash_bootstrap_components as dbc
+
 
 
 dash.register_page(__name__, name="Upload_Page")
-
-UPLOAD_FOLDER_ROOT = r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files"
 
 
 # Set the upload folder
 UPLOAD_FOLDER = os.path.join(os.getcwd(), r"/Users/yanhui/eclipse-workspace/SEGP-groupXv3/files")
 
-"""
-layout = dbc.Container([
-            dbc.Row([
-                dbc.Col(html.Div([html.Img(src='../assets/driver.png')]),width=6),
-                dbc.Col(html.Div([html.H1('FILE UPLOAD'),
-                                  dcc.Upload(
-                                      id='upload-data',
-                                      children=html.Div([
-                                          'Drag and drop or click to select a file to upload.'
-                                      ]),
-                                      style={
-                                          'width': '99%',
-                                          'height': '60px',
-                                          'lineHeight': '60px',
-                                          'borderWidth': '1px',
-                                          'borderStyle': 'dashed',
-                                          'borderRadius': '5px',
-                                          'textAlign': 'center',
-                                          'margin': '10px'
-                                      },
-                                      multiple=True,
-                                      accept='.edf'
-                                  ),
-                                  html.Div(id='output-data-upload'),
-                                  ]),width=6, style={'padding': '20px'}),
-            ],align='center'),
-        ])
-
-"""
 
 layout = html.Div([
     #html.Img(src='../assets/driver.png'),
@@ -145,20 +114,3 @@ def save_uploaded_files(filenames, contents):
         return html.Div([
             html.P('No files have been uploaded.')
         ])
-
-
-"""
-def save_uploaded_files(filenames, contents):
-    if filenames is not None and contents is not None:
-        for filename, content in zip(filenames, contents):
-            with open(os.path.join(UPLOAD_FOLDER, filename), 'wb') as f:
-                f.write(content.encode('utf-8'))
-        return html.Div([
-                            html.P('The following files have been uploaded and saved:')
-                        ] + [html.P(filename) for filename in filenames])
-    else:
-        return html.Div([
-            html.P('No files have been uploaded.')
-        ])
-
-"""
