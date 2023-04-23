@@ -30,3 +30,11 @@ Import Libraries<br>
 <br>
 If encounter any problem, run this code in windows powershell <br>
 Set-ExecutionPolicy RemoteSigned
+
+### How to run the files
+1. upload.py and predict.py<br>
+Change the file path of UPLOAD_FOLDER to -> r"the path you have copied"<br>
+
+2. Run app.py.<br>
+
+3. Click on the link.<br>
