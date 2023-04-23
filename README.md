@@ -27,4 +27,4 @@ Import Libraries<br>
 * dash
 <br>
 If encounter any problem, run this code in windows powershell <br>
-__Set-ExecutionPolicy RemoteSigned__
+Set-ExecutionPolicy RemoteSigned
