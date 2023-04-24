@@ -44,7 +44,7 @@ Change the file path of UPLOAD_FOLDER to -> r"replace with the path you have cop
 
 ### Guide on using our GUI
 1. Navigate to upload file page using the sidebar.
-2. Upload edf files in the correct order.<br> Select PSG file first then the hypnogram file and click upload.<br>
+2. Upload edf files in the correct order.<br> Select PSG file first then the hypnogram file and click upload.<br>There are some sample files you can use in the dataset folder.<br>
 3. After the files have successfully uploaded, you may navigate to the start drive page using the sidebar.<br>
    ![My Image](assets/fileupload.png)
 4. Click on the start drive button and the output will start showing.
